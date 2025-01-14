@@ -7,7 +7,7 @@ export default function CartItem({ product }) {
   const { updateQuantity, removeFromCart } = useCart(); // Extract necessary functions from context
 
   return (
-    <div className="bg-white border rounded-lg shadow-md p-3 flex flex-col h-full">
+    <div className="bg-white border rounded-lg shadow-md p-3 flex flex-col h-full transition-transform duration-300 transform hover:scale-110">
       {/* Display the first image in the product.images array */}
       <div className="w-full h-32 relative mb-3 mx-auto">
         <Image

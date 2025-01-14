@@ -93,7 +93,7 @@ export default function ProductCard({ product }) {
 
   return (
     <div
-      className="bg-white border rounded-md shadow-md p-3 hover:shadow-lg transition flex flex-col justify-between relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-sm xl:max-w-md mx-auto"
+      className="bg-white border rounded-md shadow-md p-3 hover:shadow-lg transition flex flex-col justify-between relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-sm xl:max-w-md mx-auto transition-transform duration-300 transform hover:scale-110"
       style={{ minHeight: "300px" }}
     >
       {/* New Tag with Blinking Animation */}

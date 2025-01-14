@@ -33,7 +33,7 @@ export default function WishlistItem({ product }) {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-md p-3 flex flex-col items-center h-full relative">
+    <div className="bg-white shadow-md rounded-md p-3 flex flex-col items-center h-full relative transition-transform duration-300 transform hover:scale-110">
       {/* Heart Icon */}
       <div
         className={`absolute top-2 right-2 cursor-pointer ${

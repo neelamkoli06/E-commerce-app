@@ -4,133 +4,142 @@ import { createContext, useContext, useState, useEffect } from "react";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // Cart and Wishlist state initialization
+  // Cart, Wishlist, and Compare state initialization
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [compareList, setCompareList] = useState([]);
 
-  // Initialize cart and wishlist state after component mounts (to avoid SSR mismatch)
+  // Counts for cart, wishlist, and compare list
+  const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [compareCount, setCompareCount] = useState(0);
+
+  // Initialize cart, wishlist, and compare list from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedCart = localStorage.getItem("cart");
-      const storedWishlist = localStorage.getItem("wishlist");
+      const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+      const storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+      const storedCompareList =
+        JSON.parse(localStorage.getItem("compareList")) || [];
 
-      setCart(JSON.parse(storedCart) || []);
-      setWishlist(JSON.parse(storedWishlist) || []);
+      setCart(storedCart);
+      setWishlist(storedWishlist);
+      setCompareList(storedCompareList);
+      setCartCount(storedCart.length);
+      setWishlistCount(storedWishlist.length);
+      setCompareCount(storedCompareList.length);
     }
   }, []);
 
-  // Update localStorage whenever cart or wishlist changes
-  useEffect(() => {
+  // Update localStorage and counts whenever cart, wishlist, or compare list changes
+  const syncLocalStorage = (key, value, updateCount) => {
     if (typeof window !== "undefined") {
-      if (cart.length > 0) localStorage.setItem("cart", JSON.stringify(cart));
-      if (wishlist.length > 0) localStorage.setItem("wishlist", JSON.stringify(wishlist));
+      localStorage.setItem(key, JSON.stringify(value));
+      updateCount(value.length); // Update count immediately
     }
-  }, [cart, wishlist]);
+  };
 
   // Add product to cart
   const addToCart = (product) => {
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.id === product.id);
-      if (existingProduct) {
-        return prevCart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [...prevCart, { ...product, quantity: 1 }];
-      }
+      const updatedCart = existingProduct
+        ? prevCart.map((item) =>
+            item.id === product.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          )
+        : [...prevCart, { ...product, quantity: 1 }];
+
+      syncLocalStorage("cart", updatedCart, setCartCount); // Sync cart and count
+      return updatedCart;
     });
   };
 
   // Remove product from cart
   const removeFromCart = (id) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+    setCart((prevCart) => {
+      const updatedCart = prevCart.filter((item) => item.id !== id);
+      syncLocalStorage("cart", updatedCart, setCartCount);
+      return updatedCart;
+    });
   };
 
   // Update quantity of a product in the cart
   const updateQuantity = (id, quantity) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
+    setCart((prevCart) => {
+      const updatedCart = prevCart.map((item) =>
         item.id === id
           ? { ...item, quantity: Math.max(1, quantity) }
           : item
-      )
-    );
+      );
+      syncLocalStorage("cart", updatedCart, setCartCount);
+      return updatedCart;
+    });
   };
 
   // Add product to wishlist
   const addToWishlist = (product) => {
     setWishlist((prevWishlist) => {
       const existingProduct = prevWishlist.find((item) => item.id === product.id);
-      if (existingProduct) {
-        return prevWishlist;
-      } else {
-        return [...prevWishlist, product];
-      }
+      const updatedWishlist = existingProduct
+        ? prevWishlist
+        : [...prevWishlist, product];
+
+      syncLocalStorage("wishlist", updatedWishlist, setWishlistCount); // Sync wishlist and count
+      return updatedWishlist;
     });
   };
 
   // Remove product from wishlist
   const removeFromWishlist = (productId) => {
-    setWishlist((prevWishlist) => prevWishlist.filter((item) => item.id !== productId));
+    setWishlist((prevWishlist) => {
+      const updatedWishlist = prevWishlist.filter((item) => item.id !== productId);
+      syncLocalStorage("wishlist", updatedWishlist, setWishlistCount);
+      return updatedWishlist;
+    });
   };
-
-  // Compare List code (keeping it the same as before)
-  const [compareList, setCompareList] = useState(() => {
-    if (typeof window !== "undefined") {
-      const storedCompareList = localStorage.getItem("compareList");
-      return JSON.parse(storedCompareList) || [];
-    }
-    return [];
-  });
-
-  // Update compare list in localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window !== "undefined" && compareList.length > 0) {
-      localStorage.setItem("compareList", JSON.stringify(compareList));
-    }
-  }, [compareList]);
 
   // Add product to compare list
   const addToCompare = (product) => {
     setCompareList((prevCompareList) => {
       const existingProduct = prevCompareList.find((item) => item.id === product.id);
-      if (existingProduct) {
-        return prevCompareList;
-      } else {
-        return [...prevCompareList, product];
-      }
+      const updatedCompareList = existingProduct
+        ? prevCompareList
+        : [...prevCompareList, product];
+
+      syncLocalStorage("compareList", updatedCompareList, setCompareCount); // Sync compare list and count
+      return updatedCompareList;
     });
   };
 
   // Remove product from compare list
   const removeFromCompare = (productId) => {
-    setCompareList((prevCompareList) => prevCompareList.filter((item) => item.id !== productId));
+    setCompareList((prevCompareList) => {
+      const updatedCompareList = prevCompareList.filter(
+        (item) => item.id !== productId
+      );
+      syncLocalStorage("compareList", updatedCompareList, setCompareCount);
+      return updatedCompareList;
+    });
   };
 
-  // Clear the entire cart (with localStorage removal)
+  // Clear the entire cart
   const clearCart = () => {
-    setCart([]); // Clear the cart state
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("cart"); // Remove the cart from localStorage
-    }
+    setCart([]);
+    syncLocalStorage("cart", [], setCartCount); // Clear cart and reset count
   };
 
   // Clear the entire wishlist
   const clearWishlist = () => {
-    setWishlist([]); // Clear the wishlist state
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("wishlist"); // Remove the wishlist from localStorage
-    }
+    setWishlist([]);
+    syncLocalStorage("wishlist", [], setWishlistCount); // Clear wishlist and reset count
   };
 
   // Clear the entire compare list
   const clearCompare = () => {
-    setCompareList([]); // Clear the compare list state
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("compareList"); // Remove the compare list from localStorage
-    }
+    setCompareList([]);
+    syncLocalStorage("compareList", [], setCompareCount); // Clear compare list and reset count
   };
 
   return (
@@ -139,6 +148,9 @@ export const CartProvider = ({ children }) => {
         cart,
         wishlist,
         compareList,
+        cartCount,
+        wishlistCount,
+        compareCount,
         addToCart,
         removeFromCart,
         updateQuantity,

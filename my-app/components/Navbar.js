@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   FaBalanceScale,
@@ -6,48 +5,17 @@ import {
   FaShoppingCart,
   FaBars,
 } from "react-icons/fa";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import SearchBar from "../components/SearchBar";
+import { useCart } from "../context/CartContext"; // Import the CartContext
 
 export default function Navbar() {
-  const [cartCount, setCartCount] = useState(0);
-  const [wishlistCount, setWishlistCount] = useState(0);
-  const [compareCount, setCompareCount] = useState(0);
-  const [isClient, setIsClient] = useState(false); // Flag to track if we're on the client
   const [menuOpen, setMenuOpen] = useState(false); // State for toggling mobile menu
   const router = useRouter();
 
-  // Initialize localStorage data after the component mounts
-  useEffect(() => {
-    setIsClient(true); // Ensures we're on the client side
-
-    if (typeof window !== "undefined") {
-      const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-      const storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-      const storedCompareList =
-        JSON.parse(localStorage.getItem("compareList")) || [];
-
-      setCartCount(storedCart.length);
-      setWishlistCount(storedWishlist.length);
-      setCompareCount(storedCompareList.length);
-    }
-  }, []);
-
-  const updateLocalStorage = (type, updatedList) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(type, JSON.stringify(updatedList));
-
-      // Update the corresponding state immediately
-      if (type === "cart") setCartCount(updatedList.length);
-      if (type === "wishlist") setWishlistCount(updatedList.length);
-      if (type === "compareList") setCompareCount(updatedList.length);
-    }
-  };
-
-  // Render only after the component has mounted on the client side
-  if (!isClient) {
-    return null; // Prevent hydration mismatch by not rendering anything on the server side
-  }
+  // Access counts and actions from context
+  const { cartCount, wishlistCount, compareCount } = useCart();
 
   return (
     <nav className="flex justify-between items-center bg-white text-black px-6 py-4 shadow-md border-b border-gray-200">
@@ -129,11 +97,6 @@ export default function Navbar() {
           <button
             className="relative text-black hover:text-yellow-500 transition"
             title="Compare"
-            onClick={() => {
-              const compareList =
-                JSON.parse(localStorage.getItem("compareList")) || [];
-              updateLocalStorage("compareList", compareList);
-            }}
           >
             <FaBalanceScale size={24} />
             {compareCount > 0 && (
@@ -148,11 +111,6 @@ export default function Navbar() {
           <button
             className="relative text-black hover:text-red-500 transition"
             title="Favorites"
-            onClick={() => {
-              const wishlist =
-                JSON.parse(localStorage.getItem("wishlist")) || [];
-              updateLocalStorage("wishlist", wishlist);
-            }}
           >
             <FaHeart size={24} />
             {wishlistCount > 0 && (
@@ -167,10 +125,6 @@ export default function Navbar() {
           <button
             className="relative text-black hover:text-blue-500 transition"
             title="Cart"
-            onClick={() => {
-              const cart = JSON.parse(localStorage.getItem("cart")) || [];
-              updateLocalStorage("cart", cart);
-            }}
           >
             <FaShoppingCart size={24} />
             {cartCount > 0 && (

@@ -7,7 +7,7 @@ const Custom404 = () => {
       <h2 className="text-2xl text-gray-700 mb-4">Page Not Found</h2>
       <p className="text-lg text-gray-600 mb-6">Sorry, the page you're looking for does not exist.</p>
       <Link href="/" passHref>
-        <button className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+        <button className="bg-black text-white px-6 py-2 rounded-md hover:bg-grey">
           Go Back to Home
         </button>
       </Link>
